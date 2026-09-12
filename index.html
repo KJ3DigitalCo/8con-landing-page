@@ -705,6 +705,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
+  // The browser's own scroll-position restoration (on reload, or navigating back to this page)
+  // can land the viewport already inside/near the "Let's Learn" pinned section before GSAP has
+  // measured anything - ScrollTrigger then builds its pin-spacer against a scroll position that's
+  // about to jump again once the browser finishes restoring, which is exactly the kind of moving-
+  // target measurement that corrupts start/end. Taking manual control up front (this page has no
+  // legitimate reason to reopen mid-scroll - it's a single landing page, not a multi-page app)
+  // guarantees ScrollTrigger always measures from a stable, predictable top-of-page scroll.
+  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+  if (window.scrollY > 0 && !window.location.hash) { window.scrollTo(0, 0); }
+
   // --- Registration ---
   // Point ENDPOINT at your registration tool's form intake (Google Forms / GoHighLevel / a webhook).
   // Left empty = demo mode: the seat is saved in this browser and the success state shows.
