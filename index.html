@@ -702,6 +702,7 @@
     if (!form) return;
     form.addEventListener('submit', function(e){
       e.preventDefault();
+      if (form.dataset.submitting) return; // guards against a double-click firing two submits
       var data = {
         name: form.name.value.trim(),
         email: form.email.value.trim(),
@@ -714,6 +715,7 @@
         bad.focus();
         return;
       }
+      form.dataset.submitting = 'true';
       function done(){
         try{ localStorage.setItem('8con_reg', JSON.stringify(data)); }catch(_){}
         cards.forEach(function(c){ c.classList.add('done'); });
