@@ -952,13 +952,18 @@
       Array.prototype.slice.call(track.children).forEach(function(fig){
         track.appendChild(fig.cloneNode(true));
       });
-      var paused = false, resumeTimer;
-      track.addEventListener('pointerenter', function(){ paused = true; });
-      track.addEventListener('pointerleave', function(){ paused = false; });
-      track.addEventListener('touchstart', function(){ paused = true; clearTimeout(resumeTimer); }, {passive: true});
-      track.addEventListener('touchend', function(){ resumeTimer = setTimeout(function(){ paused = false; }, 2500); });
+      // Time-based pause instead of a start/end-paired flag: a touch gesture that gets
+      // interpreted as a page scroll can fire touchstart without ever firing a matching
+      // touchend, which would leave a paired flag stuck "paused" forever. Refreshing a
+      // pause-until timestamp on every touch event self-heals regardless of which touch
+      // events actually fire.
+      var pausedUntil = 0;
+      track.addEventListener('mouseenter', function(){ pausedUntil = Infinity; });
+      track.addEventListener('mouseleave', function(){ pausedUntil = 0; });
+      track.addEventListener('touchstart', function(){ pausedUntil = Date.now() + 2500; }, {passive: true});
+      track.addEventListener('touchmove', function(){ pausedUntil = Date.now() + 2500; }, {passive: true});
       (function tick(){
-        if (!paused) {
+        if (Date.now() > pausedUntil) {
           track.scrollLeft += 0.6;
           var half = track.scrollWidth / 2;
           if (track.scrollLeft >= half) track.scrollLeft -= half;
