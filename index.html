@@ -116,10 +116,10 @@
   .btn-glow{position:relative}
   .btn-glow::before{
     content:"";position:absolute;inset:-3px;border-radius:inherit;padding:3px;
-    background:conic-gradient(from var(--angle),transparent 0deg,var(--crimson) 60deg,transparent 130deg,var(--forest-ink) 210deg,transparent 280deg,transparent 360deg);
+    background:conic-gradient(from var(--angle),transparent 0deg,var(--forest-ink) 90deg,transparent 200deg,transparent 360deg);
     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
     -webkit-mask-composite:xor;mask-composite:exclude;
-    animation:card-glow-spin 4s linear infinite;pointer-events:none;
+    animation:card-glow-spin 1.6s linear infinite;pointer-events:none;
   }
   .card .sess{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px}
   .card .sess .lbl{font-family:"IBM Plex Mono",monospace;font-size:0.66rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
@@ -1049,7 +1049,18 @@
 
     gsap.timeline({
       scrollTrigger: {
-        trigger: section, start: 'top top', end: '+=170%', scrub: true, pin: true, anticipatePin: 1,
+        trigger: section, start: 'top top',
+        // A plain '+=170%' end is relative to the PINNED ELEMENT's own measured height, which
+        // GSAP recomputes on every refresh (we trigger 3: fonts.ready, window load, a timeout) -
+        // if any one of those refreshes ever runs against a bad viewport reading (0, e.g. a
+        // backgrounded tab or an in-app browser's chrome still animating open, both realistic on
+        // Meta-ad mobile traffic), the pin-spacer's height can lock in at that bad value and then
+        // COMPOUND on the next refresh, ballooning the scroll-through distance from ~1300px to
+        // tens of thousands. A function is re-evaluated fresh from window.innerHeight every time
+        // (never from the element's own possibly-corrupted prior height), and the floor keeps a
+        // momentary 0 reading from collapsing the whole calculation.
+        end: function(){ return '+=' + (Math.max(window.innerHeight, 600) * 1.7); },
+        scrub: true, pin: true, anticipatePin: 1,
         onUpdate: function(self){
           if (self.direction === 1 && self.progress >= collisionThreshold && autoState === 0){ autoState = 1; autoTl.play(0); }
           else if (self.direction === -1 && self.progress < collisionThreshold && autoState === 1){ autoState = 0; autoTl.reverse(); }
@@ -1089,9 +1100,10 @@
     // width/height for the pin and never re-check it, leaving the section collapsed and its
     // decorative ring/spark/flash elements floating at that stale, wrong document position.
     // Refreshing once fonts are ready and once more on full load fixes both.
-    document.fonts.ready.then(function(){ ScrollTrigger.refresh(); }).catch(function(){});
-    window.addEventListener('load', function(){ ScrollTrigger.refresh(); });
-    setTimeout(function(){ ScrollTrigger.refresh(); }, 400);
+    function safeRefresh(){ if (window.innerHeight > 0) ScrollTrigger.refresh(); }
+    document.fonts.ready.then(safeRefresh).catch(function(){});
+    window.addEventListener('load', safeRefresh);
+    setTimeout(safeRefresh, 400);
   })();
 
   // Fallback swept on every scroll (see the reveal IIFE below): a same-page anchor jump or a fast
