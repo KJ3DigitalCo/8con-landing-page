@@ -1046,6 +1046,13 @@
           if (self.direction === 1 && self.progress >= collisionThreshold && autoState === 0){ autoState = 1; autoTl.play(0); }
           else if (self.direction === -1 && self.progress < collisionThreshold && autoState === 1){ autoState = 0; autoTl.reverse(); }
         },
+        // Safety net: a fast/jittery scroll (common on mobile flicks) can register a stray
+        // direction flip mid-collision, leaving autoTl paused partway through with the crimson
+        // flash stuck visible instead of faded out. Forcing the decorative timeline to its
+        // correct end state the instant the section fully enters/exits guarantees it never gets
+        // stuck, regardless of what happened to autoState on the way there.
+        onLeave: function(){ autoTl.progress(1); autoState = 1; },
+        onLeaveBack: function(){ autoTl.progress(0); autoState = 0; },
       },
     })
       .to(riskEls, {x: '-64vw', duration: 0.15, ease: 'power1.inOut'}, 0)
