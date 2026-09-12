@@ -981,6 +981,13 @@
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
+    // GSAP's own default auto-refresh (fires on window 'resize', among others) is NOT covered
+    // by the safeRefresh() guard below - it's an internal listener we never call ourselves. A
+    // resize firing while window.innerHeight briefly reads a bad value (verified happening, not
+    // just theoretical) can just as easily corrupt start/end as the 3 refreshes we do control.
+    // Limiting autoRefreshEvents to load-time only, then handling resize ourselves through the
+    // same guarded/debounced path, closes that gap.
+    ScrollTrigger.config({autoRefreshEvents: 'DOMContentLoaded,load'});
 
     var section = document.getElementById('buildTx');
     if (!section) return;
@@ -1110,6 +1117,11 @@
     document.fonts.ready.then(safeRefresh).catch(function(){});
     window.addEventListener('load', safeRefresh);
     setTimeout(safeRefresh, 400);
+    var resizeTimer;
+    window.addEventListener('resize', function(){
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(safeRefresh, 250);
+    });
   })();
 
   // Fallback swept on every scroll (see the reveal IIFE below): a same-page anchor jump or a fast
