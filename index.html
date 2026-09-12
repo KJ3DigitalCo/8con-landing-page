@@ -335,6 +335,7 @@
 </head>
 <body>
 
+<div id="pc" style="position:fixed;inset:0;background:#121411;z-index:99999"></div>
 <div class="cursor-dot" aria-hidden="true"></div>
 <div class="cursor-ring" aria-hidden="true"></div>
 <div class="scroll-progress-track"><div class="scroll-progress" id="scrollProgress"></div></div>
@@ -1148,25 +1149,48 @@
 
     // Belt and suspenders: the bfcache reload above covers browser back/forward, but mobile
     // browsers also restore tabs after the whole app was closed and reopened - a different
-    // mechanism again, confirmed (by the client, repeatedly, on a real phone) to still corrupt
-    // this trigger's start/end the same way. Rather than chase every OS/browser-specific restore
-    // path individually, this just periodically checks whether the measurement still looks sane
-    // (a pin's scroll-through distance is never negative and never wildly larger than a few
-    // viewport-heights) and self-heals if not - first a plain refresh, then a full reload if
-    // that alone didn't fix it one check later. Runs regardless of what caused the corruption.
+    // mechanism again, confirmed (by the client, repeatedly, on a real phone, caught on screen
+    // recording) to still corrupt this trigger's start/end the same way. Rather than chase every
+    // OS/browser-specific restore path individually, this checks whether the measurement still
+    // looks sane (a pin's scroll-through distance is never negative and never wildly larger than
+    // a few viewport-heights) and self-heals if not.
+    //
+    // A reload-after-the-fact isn't good enough on its own: the client explicitly does not want
+    // the corrupted frame visible even briefly before it self-corrects. So the page starts hidden
+    // behind the #pc curtain (opaque div, first thing in body) and only reveals once this has
+    // confirmed the measurement is sane - if it's still bad after ~600ms, it reloads BEHIND the
+    // curtain (never shown), and the curtain stays up covering the fresh load's own check too.
+    // A hard 3s timeout force-reveals regardless, so a visitor is never stuck on a blank page if
+    // something here breaks in a way this can't detect.
     function triggerIsSane(st){
       var dist = st.end - st.start;
       return st.start > -50 && dist > 300 && dist < 5000;
     }
-    var insaneStreak = 0;
-    setInterval(function(){
+    function pageIsSane(){
       var st = ScrollTrigger.getAll()[0];
-      if (!st || window.innerHeight <= 0) return;
-      if (triggerIsSane(st)) { insaneStreak = 0; return; }
-      insaneStreak++;
-      if (insaneStreak === 1) { ScrollTrigger.refresh(); }
-      else { window.location.reload(); }
-    }, 1000);
+      return !!st && window.innerHeight > 0 && triggerIsSane(st);
+    }
+    var curtain = document.getElementById('pc');
+    var revealChecks = 0;
+    var revealTimer = setInterval(function(){
+      revealChecks++;
+      if (pageIsSane()){
+        clearInterval(revealTimer);
+        if (curtain) curtain.style.display = 'none';
+      } else if (revealChecks >= 6){
+        window.location.reload();
+      }
+    }, 100);
+    setTimeout(function(){ if (curtain) curtain.style.display = 'none'; }, 3000);
+
+    // Keep watching after the initial reveal too, in case something corrupts the measurement
+    // later (e.g. a resize mid-session) - same reload-behind-the-curtain treatment.
+    setInterval(function(){
+      if (curtain && curtain.style.display === 'none' && !pageIsSane()){
+        curtain.style.display = 'block';
+        window.location.reload();
+      }
+    }, 500);
   })();
 
   // Fallback swept on every scroll (see the reveal IIFE below): a same-page anchor jump or a fast
