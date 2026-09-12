@@ -113,6 +113,14 @@
     animation:card-glow-spin 4s linear infinite;pointer-events:none;
   }
   @keyframes card-glow-spin{to{--angle:360deg}}
+  .btn-glow{position:relative}
+  .btn-glow::before{
+    content:"";position:absolute;inset:-3px;border-radius:inherit;padding:3px;
+    background:conic-gradient(from var(--angle),transparent 0deg,var(--crimson) 60deg,transparent 130deg,var(--forest-ink) 210deg,transparent 280deg,transparent 360deg);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    animation:card-glow-spin 4s linear infinite;pointer-events:none;
+  }
   .card .sess{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:18px}
   .card .sess .lbl{font-family:"IBM Plex Mono",monospace;font-size:0.66rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
   .card .sess .when{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:-0.01em;line-height:1.15}
@@ -536,7 +544,7 @@
       </ul>
       <p class="anchor-line">All of it, free. <b>Your price: ₱0.</b> The only cost is showing up.</p>
       <div class="cta-row">
-        <a class="btn" href="#register">Save my free seat</a>
+        <a class="btn btn-glow" href="#register">Save my free seat</a>
         <span class="note">No card required</span>
       </div>
     </div>
