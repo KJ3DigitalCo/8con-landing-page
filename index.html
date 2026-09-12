@@ -714,6 +714,19 @@
   // guarantees ScrollTrigger always measures from a stable, predictable top-of-page scroll.
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   if (window.scrollY > 0 && !window.location.hash) { window.scrollTo(0, 0); }
+  // The fix above only covers the browser's scroll-position-on-reload feature. Navigating back
+  // to this page (e.g. hitting back from the Messenger redirect after registering) is a DIFFERENT
+  // mechanism - the back-forward cache (bfcache) - which resumes the WHOLE page verbatim from a
+  // frozen snapshot, scroll position and all prior ScrollTrigger pin measurements included,
+  // WITHOUT re-running this script. Confirmed reproducing the exact "Let's Learn" overlapping the
+  // hero" bug this way, and confirmed a plain ScrollTrigger.refresh() on resume isn't enough by
+  // itself either - the pin's own fixed/unfixed engagement can still land desynced from what
+  // progress says it should be. A full reload re-derives everything from scratch exactly like
+  // any other fresh visit (verified correct many times over), which is worth the small delay on
+  // what's already a rare navigation path.
+  window.addEventListener('pageshow', function(e){
+    if (e.persisted) { window.location.reload(); }
+  });
 
   // --- Registration ---
   // Point ENDPOINT at your registration tool's form intake (Google Forms / GoHighLevel / a webhook).
