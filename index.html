@@ -1145,6 +1145,28 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(safeRefresh, 250);
     });
+
+    // Belt and suspenders: the bfcache reload above covers browser back/forward, but mobile
+    // browsers also restore tabs after the whole app was closed and reopened - a different
+    // mechanism again, confirmed (by the client, repeatedly, on a real phone) to still corrupt
+    // this trigger's start/end the same way. Rather than chase every OS/browser-specific restore
+    // path individually, this just periodically checks whether the measurement still looks sane
+    // (a pin's scroll-through distance is never negative and never wildly larger than a few
+    // viewport-heights) and self-heals if not - first a plain refresh, then a full reload if
+    // that alone didn't fix it one check later. Runs regardless of what caused the corruption.
+    function triggerIsSane(st){
+      var dist = st.end - st.start;
+      return st.start > -50 && dist > 300 && dist < 5000;
+    }
+    var insaneStreak = 0;
+    setInterval(function(){
+      var st = ScrollTrigger.getAll()[0];
+      if (!st || window.innerHeight <= 0) return;
+      if (triggerIsSane(st)) { insaneStreak = 0; return; }
+      insaneStreak++;
+      if (insaneStreak === 1) { ScrollTrigger.refresh(); }
+      else { window.location.reload(); }
+    }, 1000);
   })();
 
   // Fallback swept on every scroll (see the reveal IIFE below): a same-page anchor jump or a fast
