@@ -770,7 +770,6 @@
       }
       form.dataset.submitting = 'true';
       function done(){
-        try{ localStorage.setItem('8con_reg', JSON.stringify(data)); }catch(_){}
         cards.forEach(function(c){ c.classList.add('done'); });
         thisCard.scrollIntoView({block:'nearest'});
         var bar = document.getElementById('stickybar');
@@ -789,11 +788,6 @@
       }
     });
   });
-
-  // Returning visitor who already registered in this browser
-  try{
-    if (localStorage.getItem('8con_reg')) cards.forEach(function(c){ c.classList.add('done'); });
-  }catch(_){}
 
   // --- Custom cursor: ring trails the dot with easing, both hidden on touch/coarse pointers,
   // narrow screens, or reduced motion. Ports the site's existing CustomCursor.jsx mechanics. ---
