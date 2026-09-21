@@ -397,6 +397,10 @@
               <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+63" required>
             </div>
             <div class="field">
+              <label for="location">Location (optional)</label>
+              <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="City / Province">
+            </div>
+            <div class="field">
               <label for="exp">Have you tried digital trading before?</label>
               <select id="exp" name="experience">
                 <option value="never">Never, total beginner</option>
@@ -663,6 +667,10 @@
               <input id="phone-2" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+63" required>
             </div>
             <div class="field">
+              <label for="location-2">Location (optional)</label>
+              <input id="location-2" name="location" type="text" autocomplete="address-level2" placeholder="City / Province">
+            </div>
+            <div class="field">
               <label for="exp-2">Have you tried digital trading before?</label>
               <select id="exp-2" name="experience">
                 <option value="never">Never, total beginner</option>
@@ -760,6 +768,7 @@
         name: form.name.value.trim(),
         email: form.email.value.trim(),
         phone: form.phone.value.trim(),
+        location: form.location.value.trim(),
         experience: form.experience.value,
         ts: new Date().toISOString()
       };
