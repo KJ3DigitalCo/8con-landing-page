@@ -403,8 +403,8 @@ fbq('track','PageView');
               <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+63" required>
             </div>
             <div class="field">
-              <label for="location">Location (optional)</label>
-              <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="City / Province">
+              <label for="location">Location</label>
+              <input id="location" name="location" type="text" autocomplete="address-level2" placeholder="City / Province" required>
             </div>
             <div class="field">
               <label for="exp">Have you tried digital trading before?</label>
@@ -673,8 +673,8 @@ fbq('track','PageView');
               <input id="phone-2" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+63" required>
             </div>
             <div class="field">
-              <label for="location-2">Location (optional)</label>
-              <input id="location-2" name="location" type="text" autocomplete="address-level2" placeholder="City / Province">
+              <label for="location-2">Location</label>
+              <input id="location-2" name="location" type="text" autocomplete="address-level2" placeholder="City / Province" required>
             </div>
             <div class="field">
               <label for="exp-2">Have you tried digital trading before?</label>
@@ -778,8 +778,8 @@ fbq('track','PageView');
         experience: form.experience.value,
         ts: new Date().toISOString()
       };
-      if (!data.name || !/.+@.+\..+/.test(data.email) || data.phone.replace(/\D/g,'').length < 7){
-        var bad = !data.name ? form.name : (!/.+@.+\..+/.test(data.email) ? form.email : form.phone);
+      if (!data.name || !/.+@.+\..+/.test(data.email) || data.phone.replace(/\D/g,'').length < 7 || !data.location){
+        var bad = !data.name ? form.name : (!/.+@.+\..+/.test(data.email) ? form.email : (data.phone.replace(/\D/g,'').length < 7 ? form.phone : form.location));
         bad.focus();
         return;
       }
